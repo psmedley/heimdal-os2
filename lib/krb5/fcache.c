@@ -75,7 +75,7 @@ _krb5_xlock(krb5_context context, int fd, krb5_boolean exclusive,
 	    const char *filename)
 {
     int ret;
-#ifdef HAVE_FCNTL
+#if defined(HAVE_FCNTL) && !defined(__OS2__)
     struct flock l;
 
     l.l_start = 0;
@@ -118,7 +118,7 @@ KRB5_LIB_FUNCTION int KRB5_LIB_CALL
 _krb5_xunlock(krb5_context context, int fd)
 {
     int ret;
-#ifdef HAVE_FCNTL
+#if defined(HAVE_FCNTL) && !defined(__OS2__)
     struct flock l;
     l.l_start = 0;
     l.l_len = 0;
@@ -136,6 +136,11 @@ _krb5_xunlock(krb5_context context, int fd)
     case EINVAL: /* filesystem doesn't support locking, let the user have it */
 	ret = 0;
 	break;
+#ifdef __OS2__
+    case EBADF: /* filesystem doesn't support locking, let the user have it */
+	ret = 0;
+	break;
+#endif
     default: {
 	char buf[128];
 	rk_strerror_r(ret, buf, sizeof(buf));
@@ -278,11 +283,18 @@ _krb5_erase_file(krb5_context context, const char *filename)
 	ret = errno;
 	_krb5_xunlock(context, fd);
         close (fd);
+#ifdef __OS2__
+        if (unlink(filename) < 0) {
+#endif
 	krb5_set_error_message(context, errno,
 	    N_("krb5_cc_destroy: unlinking \"%s\": %s", ""),
 	    filename, strerror(ret));
         return ret;
+#ifdef __OS2__
+        }
+#endif
     }
+#ifndef __OS2__
     ret = fstat(fd, &sb2);
     if (ret < 0) {
 	ret = errno;
@@ -290,7 +302,6 @@ _krb5_erase_file(krb5_context context, const char *filename)
 	close (fd);
 	return ret;
     }
-
     /* check if someone was playing with symlinks */
 
     if (sb1.st_dev != sb2.st_dev || sb1.st_ino != sb2.st_ino) {
@@ -313,6 +324,7 @@ _krb5_erase_file(krb5_context context, const char *filename)
 	close(fd);
 	return ret;
     }
+#endif
     ret = _krb5_xunlock(context, fd);
     close(fd);
     return ret;

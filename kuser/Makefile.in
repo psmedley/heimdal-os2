@@ -1380,8 +1380,8 @@ heimtools-commands.c heimtools-commands.h: heimtools-commands.in
 
 # make sure install-exec-hook doesn't have any commands in Makefile.am.common
 install-exec-hook:
-	(cd $(DESTDIR)$(bindir) && rm -f klist && $(LN_S) heimtools klist)
-	(cd $(DESTDIR)$(bindir) && rm -f kswitch && $(LN_S) heimtools kswitch)
+	(cd $(DESTDIR)$(bindir) && rm -f klist$(EXEEXT) && $(LN_S) heimtools$(EXEEXT) klist$(EXEEXT))
+	(cd $(DESTDIR)$(bindir) && rm -f kswitch$(EXEEXT) && $(LN_S) heimtools$(EXEEXT) kswitch$(EXEEXT))
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -38,6 +38,10 @@
 #include <termios.h>
 #endif
 
+#ifdef __OS2__
+#define HAVE_CONIO_H
+#endif
+
 #include <ui.h>
 #ifdef HAVE_CONIO_H
 #include <conio.h>
@@ -66,13 +70,22 @@ read_string(const char *preprompt, const char *prompt,
     char *p;
     void (*oldsigintr)(int);
 
+#ifndef __OS2__
     _cprintf("%s%s", preprompt, prompt);
+#else
+    fprintf(stderr, "%s%s", preprompt, prompt);
+    fflush(stderr);
+#endif
 
     oldsigintr = signal(SIGINT, intr);
 
     p = buf;
     while(intr_flag == 0){
+#ifndef __OS2__
 	c = ((echo)? _getche(): _getch());
+#else
+	c = ((echo)? getche(): getch());
+#endif
 	if(c == '\n' || c == '\r')
 	    break;
 	if(of == 0)

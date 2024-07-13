@@ -20,6 +20,10 @@
 
 # $Id$
 
+OS2_LA_NAME=kdc
+OS2_DLL_NAME=kdc
+OS2_DLL_OBJ=$(libkdc_la_OBJECTS:%.lo=%.o) 
+OS2_DLL_LIBS=$(LIBS) ../lib/krb5/.libs/krb5.a ../lib/com_err/.libs/com_err.a ../lib/asn1/.libs/asn1.a ../lib/hx509/.libs/hx509.a ../lib/hdb/.libs/hdb.a ../lib/hcrypto/.libs/hcrypto.a ../lib/roken/.libs/roken.a ../lib/ntlm/.libs/heimntlm.a ../lib/base/.libs/heimbase.a
 
 
 VPATH = @srcdir@
@@ -697,7 +701,7 @@ EXTRA_DIST = \
 	libkdc-exports.def \
 	NTMakefile $(man_MANS) version-script.map
 
-all: all-am
+all: all-am $(OS2_DLL_NAME).dll
 
 .SUFFIXES:
 .SUFFIXES: .et .h .pc.in .pc .x .z .hx .1 .3 .5 .7 .8 .cat1 .cat3 .cat5 .cat7 .cat8 .c .lo .o .obj
@@ -1603,3 +1607,13 @@ $(srcdir)/kdc-private.h: $(libkdc_la_SOURCES)
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
+
+$(OS2_DLL_NAME).dll: lib$(OS2_LA_NAME).la
+	cp .libs/$(OS2_LA_NAME).a .libs/$(OS2_LA_NAME)_s.a
+	echo "LIBRARY $(OS2_DLL_NAME) INITINSTANCE TERMINSTANCE" > $(OS2_DLL_NAME).def
+	echo "DATA MULTIPLE" >> $(OS2_DLL_NAME).def
+	echo "EXPORTS" >> $(OS2_DLL_NAME).def
+	emxexp $(OS2_DLL_OBJ) >> $(OS2_DLL_NAME).def
+	gcc -g -Zbin-files -Zhigh-mem -Zomf -Zmap -static-libgcc -Zdll $(OS2_DLL_NAME).def -o $@ $(OS2_DLL_OBJ) $(OS2_DLL_LIBS) 
+	emximp -o .libs/$(OS2_LA_NAME).a $(OS2_DLL_NAME).def
+	emximp -o .libs/$(OS2_LA_NAME).lib $(OS2_DLL_NAME).def
