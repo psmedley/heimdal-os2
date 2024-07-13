@@ -1,0 +1,9 @@
+Makefile
+*.o
+*.exe
+*.dll
+*.a
+*.rej
+*.orig
+*.log
+*.diff
